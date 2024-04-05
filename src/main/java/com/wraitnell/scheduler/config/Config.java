@@ -8,15 +8,15 @@ import org.springframework.context.annotation.Configuration;
 public class Config {
     private Integer maxSessionPlayers;
     private Integer maxTokens;
-    private String sessionQueueUrl; // webhook URL for session queue channel
+    private String url;
 
     public Config() {
     }
 
-    public Config(Integer maxSessionPlayers, Integer maxTokens, String sessionQueueUrl) {
+    public Config(Integer maxSessionPlayers, Integer maxTokens, String url) {
         this.maxSessionPlayers = maxSessionPlayers;
         this.maxTokens = maxTokens;
-        this.sessionQueueUrl = sessionQueueUrl;
+        this.url = url;
     }
 
     public Integer getMaxSessionPlayers() {
@@ -35,11 +35,11 @@ public class Config {
         this.maxTokens = maxTokens;
     }
 
-    public String getSessionQueueURL() {
-        return sessionQueueUrl;
+    public String getUrl() {
+        return url;
     }
 
-    public void setSessionQueueURL(String sessionQueueURL) {
-        this.sessionQueueUrl = sessionQueueURL;
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

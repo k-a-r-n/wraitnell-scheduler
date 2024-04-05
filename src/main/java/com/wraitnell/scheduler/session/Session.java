@@ -3,18 +3,27 @@ package com.wraitnell.scheduler.session;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wraitnell.scheduler.player.Player;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name="sessions")
 public class Session {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "create_timestamp")
     private Timestamp createTimestamp;
+    @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "change_timestamp")
     private Timestamp changeTimestamp;
     @Column(name = "campaign_start_date")   // Start timestamp in seconds from SimpleCalendar
@@ -22,21 +31,22 @@ public class Session {
     @Column(name = "campaign_end_date")     // End timestamp in seconds from SimpleCalendar
     private long campaignEndDate;
     @Column(name = "scheduled_timestamp")   // The real world start timestamp for the session
-    private Timestamp scheduledTimestamp;
+    private Long scheduledTimestamp = System.currentTimeMillis();
     @Column(name = "level")
     private int sessionLevel;
     @Column(name = "goal")
     private String sessionGoal;
+    @Column(name = "discord_message_id")
+    private String discordMessageId; // this is the ID of the discord message so we know what we need to edit if it changes
     @JoinColumn(name = "captain_id")
     @ManyToOne
     private Player sessionCaptain;
-    @JsonIgnore
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "player_token_session", joinColumns = {@JoinColumn(referencedColumnName = "id")},
             inverseJoinColumns ={@JoinColumn(referencedColumnName = "id")})
     private Set<Player> tokenPlayers;
 
-    @JsonIgnore
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "player_queue_session", joinColumns = {@JoinColumn(referencedColumnName = "id")},
             inverseJoinColumns ={@JoinColumn(referencedColumnName = "id")})
@@ -62,9 +72,10 @@ public class Session {
                    Timestamp changeTimestamp,
                    long campaignStartDate,
                    long campaignEndDate,
-                   Timestamp scheduledTimestamp,
+                   Long scheduledTimestamp,
                    int sessionLevel,
                    String sessionGoal,
+
                    Player sessionCaptain,
                    Set<Player> tokenPlayers,
                    Set<Player> queuePlayers) {
@@ -122,11 +133,11 @@ public class Session {
         this.campaignEndDate = campaignEndDate;
     }
 
-    public Timestamp getScheduledTimestamp() {
+    public Long getScheduledTimestamp() {
         return scheduledTimestamp;
     }
 
-    public void setScheduledTimestamp(Timestamp scheduledTimestamp) {
+    public void setScheduledTimestamp(Long scheduledTimestamp) {
         this.scheduledTimestamp = scheduledTimestamp;
     }
 
@@ -168,5 +179,13 @@ public class Session {
 
     public void setQueuePlayers(Set<Player> queuePlayers) {
         this.queuePlayers = queuePlayers;
+    }
+
+    public String getDiscordMessageId() {
+        return discordMessageId;
+    }
+
+    public void setDiscordMessageId(String discordMessageId) {
+        this.discordMessageId = discordMessageId;
     }
 }

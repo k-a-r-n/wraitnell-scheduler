@@ -1,10 +1,10 @@
 package com.wraitnell.scheduler.webhook;
 
 public class WebhookMessage {
-    private String content;    // the message contents (up to 2000 characters)	              REQUIRED: one of content, file, embeds
-    private String username;   //	override the default username of the webhook              REQUIRED: false
-    private String avatar_url; //	string	override the default avatar of the webhook	      REQUIRED: false
-    private Boolean tts;       // true if this is a TTS message                               REQUIRED: false
+    private String content;    // the message contents (up to 2000 characters) REQUIRED: one of content, file, embeds
+    private String username = "Robot";   //	override the default username of the webhook REQUIRED: false
+    private String avatar_url = "https://cdn.dribbble.com/users/46814/screenshots/1495621/media/4c78bec3ad2ebeaa6fa08425b8a1cf8d.jpg"; //	string	override the default avatar of the webhook	      REQUIRED: false
+    private Boolean tts = false;       // true if this is a TTS message REQUIRED: false
 
     public WebhookMessage() {
     }

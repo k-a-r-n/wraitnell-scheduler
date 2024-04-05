@@ -29,9 +29,17 @@ public class SessionService {
     @Autowired
     private WebhookService webhookService;
 
-    public void addSession(Session session) {
-        webhookService.testWebhook("test");
-        sessionRepository.save(session);
+    public Session addSession(Session session) {
+
+        //TODO: I feel like we should be able to do this without two writes, I should revisit
+        // -> TRis is also going to hit the webhook service twice and edit the message we just posted, which is dumb
+
+        session = sessionRepository.save(session); // We have to do this first so we have a session ID
+        // post the message to the discord channel, and we should wait to get the ID back so we can save it to the table
+        String messageId =  webhookService.postNewSession(session);
+        session.setDiscordMessageId(messageId);
+        updateSession(session); // maybe overload this so we can tell it NOT to go out and edit the message?
+        return session;
     }
 
     public List<Session> getAllSessions() {
@@ -39,13 +47,14 @@ public class SessionService {
     }
 
     public Session getSessionById(Long id) {
-        System.out.println("I have ID: "+id);
         return sessionRepository.findById(id).orElseThrow(
                 () -> new SchedulerExceptionNotFound("No session with ID: " + id));
     }
 
-    public void updateSession(Session session) {
-        sessionRepository.save(session);
+    public Session updateSession(Session session) {
+        // Edit discord message
+        webhookService.editSessionPost(session);
+        return sessionRepository.save(session);
     }
 
     public void deleteSession(Long id) {

@@ -13,8 +13,8 @@ public class SessionController {
     private SessionService sessionService;
 
     @PostMapping("/sessions")
-    public void addSession (@RequestBody Session session) {
-        sessionService.addSession(session);
+    public Session addSession (@RequestBody Session session) {
+        return sessionService.addSession(session);
     }
 
     @GetMapping("/sessions")
@@ -28,9 +28,9 @@ public class SessionController {
     }
 
     @PutMapping("/session/{id}")
-    public void updateSession (@RequestBody Session session) {
+    public Session updateSession (@RequestBody Session session) {
         // TODO: I think this method is dumb? The ID is not going anywhere. Revisit
-        sessionService.updateSession(session);
+        return sessionService.updateSession(session);
     }
 
     @DeleteMapping("/session/{id}")
