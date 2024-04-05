@@ -1,14 +1,11 @@
 package com.wraitnell.scheduler.session;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wraitnell.scheduler.player.Player;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -59,6 +56,8 @@ public class Session {
         this.queuePlayers.remove(player);
     }
     public void tokenPlayerForSession (Player player) { // Adds a player object to the players set
+
+        System.out.println("I'm adding " + player.getId() + " to session " + this.getId());
         this.tokenPlayers.add(player);
     }
     public void unTokenPlayerForSession(Player player) { this.tokenPlayers.remove(player); }

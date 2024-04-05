@@ -17,7 +17,10 @@ import java.util.Set;
 public class Player {
 
     @Id
-    private String Id;               // Discord ID
+    private Long Id;               // Discord ID
+
+    @Column(name="name")
+    private String name;
     @Column(name = "last_session_id")
     private Long lastSessionId;      // stores the last session that the player was in
     @JsonIgnore
@@ -38,17 +41,16 @@ public class Player {
     @Column(name = "change_timestamp")
     private Timestamp changeTimestamp;    // real-world date that the user joined the campaign
 
-
     public Player() {}
 
-    public Player(String id,
+    public Player(Long id,
                   Long lastSessionId,
                   Set<Session> tokenSessions,
                   Set<Session> queueSessions,
                   Timestamp createTimestamp,
                   Timestamp changeTimestamp)
     {
-        Id = id;
+        this.Id = id;
         this.lastSessionId = lastSessionId;
         this.tokenSessions = tokenSessions;
         this.queueSessions = queueSessions;
@@ -56,11 +58,11 @@ public class Player {
         this.changeTimestamp = changeTimestamp;
     }
 
-    public String getId() {
+    public Long getId() {
         return Id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         Id = id;
     }
 
@@ -103,5 +105,4 @@ public class Player {
     public void setChangeTimestamp(Timestamp changeTimestamp) {
         this.changeTimestamp = changeTimestamp;
     }
-
 }

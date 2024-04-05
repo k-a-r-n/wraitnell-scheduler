@@ -8,13 +8,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Set;
 
 @Service
 public class WebhookService {
-    // This is the service that handles talking to the discord bot. All the nitty gritty string parsing is done in here.
+    // This is the service that handles talking to the discord webhook.
+    // Additionally, all the nitty gritty string parsing that makes the posts pretty is done here.
 
     @Autowired
     private Config config;
@@ -45,7 +44,7 @@ public class WebhookService {
                 .build();
 
         WebhookMessage testMessage = new WebhookMessage(message);
-        // Discord wants a patch for editing messages, weird
+        // Discord wants patch for editing messages, weird
         return sessionQueueClient.patch()
 
                 .uri("/messages/"+ id)
@@ -55,12 +54,19 @@ public class WebhookService {
                 .body(DiscordMessage.class);
     }
 
+    public void deleteMessageFromSessionQueue (String id) {
+        final RestClient sessionQueueClient = RestClient.builder()
+                .baseUrl(config.getUrl())
+                .build();
+
+        sessionQueueClient.delete()
+                .uri("/messages/"+ id);
+    }
 
     private String buildSessionPost (Session session) {
 
-        // TODO: This whole method could probably use reworking
-        // There has to be a better way to iterate over object sets that might be null
-        // Instantiate them to empty in the constructor maybe?
+        // TODO: I don't like the hardcoded values here - I don't see things like the header ever changing,
+        //       but it would make me feel better to make all of these values configurable
 
         String message = "**༺  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ༻**"
                 // this line needs to send the time in ms, defaults to microseconds so div by 1000
@@ -71,29 +77,31 @@ public class WebhookService {
         // Add tokened players and leave a blank spot for empty token slots
         Set<Player>playersToPrint = session.getTokenPlayers();
 
-
-        System.out.println("I'm in buildSessionPost and I have to print " + session.getTokenPlayers() + " players");
+        // This section iterates over the playersToPrint set and removes them as they're printed,
+        // and when there are no more players we fill the rest with blank spaces. I feel like there
+        // should be a better way to do this, but it works for now and performance isn't really a concern.
 
         for (int i = 0; i < config.getMaxSessionPlayers(); i++) {
-
             if (playersToPrint != null && !playersToPrint.isEmpty()) {
-
                 // We have some players to add
-                //TODO: this trash checks to see if the captain is there every time, I can find a better solution
+
+                // TODO: surely we don't need to do this check every time
+
                 if (playersToPrint.contains(session.getSessionCaptain())
                         && session.getSessionCaptain() != null) {
+                    // We have the captain in the set, add them to the post and then remove them from the set
 
-                    // We have the captain in the set, add them then remove from the set
-                    message += "\n- @" + session.getSessionCaptain().getId() + " (Captain)";
+                    message += "\n- <@" + session.getSessionCaptain().getId() + "> (Captain)";
+                    // Discord needs format <@{userid}> to successfully ping
                     playersToPrint.remove(session.getSessionCaptain());
 
                 } else if (!playersToPrint.isEmpty()) { // more players to add
 
-                    message += "\n- @" + playersToPrint.iterator().next();
-
+                    message += "\n- <@" + playersToPrint.iterator().next().getId() + ">";
+                    playersToPrint.remove(playersToPrint.iterator().next()); // apparently next() does not remove
                 }
             } else {
-                // We need to print some empty spaces
+                // No more players, we need to print some empty spaces
                 message += "\n-";
             }
         }
@@ -106,7 +114,7 @@ public class WebhookService {
 
         if (playersToPrint != null && !playersToPrint.isEmpty()) {
             for (Player player : session.getQueuePlayers()) {
-                message += "\n- @" + player.getId();
+                message += "\n- <@" + player.getId() + ">";
             }
         }
 
