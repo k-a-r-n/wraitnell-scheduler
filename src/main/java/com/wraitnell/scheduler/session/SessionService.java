@@ -31,7 +31,7 @@ public class SessionService {
 
     public Session addSession(Session session) {
 
-        //TODO: I feel like we should be able to do this without two writes
+        //I feel like I should be able to do this without two writes
         // Sending false to updateSession on the second write is a decent bandaid for now, but I should revisit this
 
         session = sessionRepository.save(session); // We have to do this first so we have a session ID
@@ -96,23 +96,23 @@ public class SessionService {
         Session session = getSessionById(sessionId);                  // Session we're adding to
         Player newPlayer = playerService.getPlayerById(playerId);     // Player we're adding
 
-        if (session.getTokenPlayers().size() < config.getMaxSessionPlayers()) { // Don't add more players than the max
-
-          if(playerService.getTokens(playerId) > 0) { // Only add if the player has more tokens
-
-              if(newPlayer.getQueueSessions().contains(session)) { // Player is already queued, remove them from the queue
-
-                  session.unQueuePlayerForSession(newPlayer);
-              }
-
-              session.tokenPlayerForSession(newPlayer);
-              updateSession(session);
-
-          } else { // Player has no tokens
-              throw new SchedulerExceptionCantToken("player with ID: " + playerId + " has no tokens.");
-          }
-        } else { // Session is full
+        if(session.getTokenPlayers().size() < config.getMaxSessionPlayers()) {
+            // Don't add more players than the max
             throw new SchedulerExceptionCantToken("session with ID: " + sessionId + " is full.");
+
+        } else  if(playerService.getTokens(playerId) > 0 ) {
+            // Don't add if player doesn't have any tokens
+            throw new SchedulerExceptionCantToken("player with ID: " + playerId + " has no tokens.");
+
+        } else {
+
+            if(newPlayer.getQueueSessions().contains(session)) {
+                // Player is already queued, remove them from the queue
+                session.unQueuePlayerForSession(newPlayer);
+            }
+
+            session.tokenPlayerForSession(newPlayer);
+            updateSession(session);
         }
     }
 
@@ -172,12 +172,34 @@ public class SessionService {
         session.setCampaignStartDate(campaignStartTime);
         updateSession(session, false); // We don't need to update the discord post with the start time
 
+        // Promote - move players from queue to token set
+
+        if (getSessionById(id).getTokenPlayers().size() < config.getMaxSessionPlayers()
+                && (!getSessionById(id).getTokenPlayers().isEmpty())) {
+
+            // There are open slots and we have queued players. Move enough queued players for a full session
+            // into the token list, but do not save
+
+            // Sort queued players into lastQueueSession date order, then lastSessionDate order
+            //    This will be fun
+
+            // Add enough queue players to hit max players
+
+        }
+
         // set last campaign id for all players on session
-        Set<Player> players = getSessionById(id).getTokenPlayers();
+        //   At this point all players (even those who queued) are in the token set thanks to the promote step,
+        //   so this just works
+
+        Set<Player> players = session.getTokenPlayers();
         for( Player player : players) {
             player.setLastSessionId(id);
             playerService.updatePlayer(player);
         }
+
+        // TODO at this point we need to write this to the archive so we keep the list of players
+        //      and we can't store that in the live db because it will screw up the tokens
+
     }
 
     public void endSession(Long id, Long campaignEndTime) {
@@ -185,6 +207,11 @@ public class SessionService {
         Session session = getSessionById(id);
         session.setCampaignStartDate(campaignEndTime);
         updateSession(session, false); // We don't need to update the discord post with the end time
+
+        // Optionally delete the discord post
+        if (config.getDeletePost()) {
+            webhookService.deleteMessageFromSessionQueue(session.getDiscordMessageId());
+        }
 
         //  TODO Tell the webhook to add a thread for the expedition log
 

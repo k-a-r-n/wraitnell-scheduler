@@ -9,6 +9,7 @@ public class Config {
     private Integer maxSessionPlayers;
     private Integer maxTokens;
     private String url;
+    private boolean DeletePost;
 
     public Config() {
     }
@@ -41,5 +42,13 @@ public class Config {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public boolean getDeletePost() {
+        return DeletePost;
+    }
+
+    public void setDelete(boolean deletePost) {
+        DeletePost = deletePost;
     }
 }

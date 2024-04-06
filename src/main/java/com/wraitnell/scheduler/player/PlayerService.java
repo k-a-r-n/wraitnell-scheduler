@@ -11,15 +11,14 @@ import java.util.Set;
 
 @Service
 public class PlayerService {
-    // TODO: Many methods need to tell the discord bot what to do
 
     @Autowired
     private PlayerRepository playerRepository;
     @Autowired
     private Config config;
 
-    public void addPlayer(Player player) {
-        playerRepository.save(player);
+    public Player addPlayer(Player player) {
+        return playerRepository.save(player);
     }
 
     public List<Player> getAllPlayers() {
@@ -31,25 +30,35 @@ public class PlayerService {
                 () -> new SchedulerExceptionNotFound("No player with ID: "+id));
     }
 
-    public void updatePlayer(Player player) {
-        playerRepository.save(player);
+    public Player updatePlayer(Player player) {
+        return playerRepository.save(player);
     }
 
     public void deletePlayer(String id) {
 
     playerRepository.delete(playerRepository.findById(id).orElseThrow(
         () -> new SchedulerExceptionNotFound("No player with ID: "+id)));
-
     }
 
-    public Integer calculateDowntime(String id) {
-        //TODO:
-        // For a given player ID, calculate and return the downtime in days
+    public Integer getDowntimeForPlayerById(String id, Long currentTime) {
+        //TODO: method not implemented
+
+        // This method needs to be called after the session is started to get downtime for the current session
+
+        // This isn't going to work, downtime is by character so I am going to have to implement characters here too
+        // This could be kind of interesting, though, if I'm able to pull character stats out of Foundry. Waaay down
+        // the road
+
+        // OK in theory, if we call this
+
         return 1;
     }
 
     public Integer getTokens(String id) {
+
         // Return player's remaining tokens - Max Tokens minus the size of the tokened sessions set
+        // Leaving tokens as abstract, if I stored the number of tokens in the db it would just get messed up
+
         return config.getMaxTokens() - playerRepository.findById(id).orElseThrow(
                 () -> new SchedulerExceptionNotFound("No player with ID: " + id)).getTokenSessions().size();
     }
@@ -63,9 +72,4 @@ public class PlayerService {
         return playerRepository.findById(id).orElseThrow(
                 () -> new SchedulerExceptionNotFound("No player with ID: "+id)).getQueueSessions();
     }
-
-
-   // }
-
-
 }

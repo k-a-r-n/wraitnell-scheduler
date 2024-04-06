@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -24,30 +25,30 @@ public class Session {
     @Column(name = "change_timestamp")
     private Timestamp changeTimestamp;
     @Column(name = "campaign_start_date")   // Start timestamp in seconds from SimpleCalendar
-    private long campaignStartDate;
+    private long campaignStartDate = 0;
     @Column(name = "campaign_end_date")     // End timestamp in seconds from SimpleCalendar
-    private long campaignEndDate;
+    private long campaignEndDate = 0;
     @Column(name = "scheduled_timestamp")   // The real world start timestamp for the session
     private Long scheduledTimestamp = System.currentTimeMillis();
     @Column(name = "level")
-    private int sessionLevel;
+    private int sessionLevel = 0;
     @Column(name = "goal")
-    private String sessionGoal;
+    private String sessionGoal = "";
     @Column(name = "discord_message_id")
-    private String discordMessageId; // this is the ID of the discord message so we know what we need to edit if it changes
+    private String discordMessageId = ""; // this is the ID of the discord message so we know what we need to edit if it changes
     @JoinColumn(name = "captain_id")
     @ManyToOne
-    private Player sessionCaptain;
+    private Player sessionCaptain = new Player();
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "player_token_session", joinColumns = {@JoinColumn(referencedColumnName = "id")},
             inverseJoinColumns ={@JoinColumn(referencedColumnName = "id")})
-    private Set<Player> tokenPlayers;
+    private Set<Player> tokenPlayers = new HashSet<Player>();
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "player_queue_session", joinColumns = {@JoinColumn(referencedColumnName = "id")},
             inverseJoinColumns ={@JoinColumn(referencedColumnName = "id")})
-    private Set<Player> queuePlayers;
+    private Set<Player> queuePlayers = new HashSet<Player>();
 
     public void queuePlayerForSession (Player player) { // Adds a player object to the players set
         this.queuePlayers.add(player);
@@ -57,7 +58,6 @@ public class Session {
     }
     public void tokenPlayerForSession (Player player) { // Adds a player object to the players set
 
-        System.out.println("I'm adding " + player.getId() + " to session " + this.getId());
         this.tokenPlayers.add(player);
     }
     public void unTokenPlayerForSession(Player player) { this.tokenPlayers.remove(player); }

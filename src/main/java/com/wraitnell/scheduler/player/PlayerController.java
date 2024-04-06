@@ -10,15 +10,12 @@ import java.util.Set;
 @RestController
 public class PlayerController {
 
-    // TODO: create methods should return created object
-    //       Make ID a Long instead of using Discord ID? Not sure it matters
-
     @Autowired
     private PlayerService playerService;
 
     @PostMapping("/players")
-    public void addPlayer(@RequestBody Player player) {
-        playerService.addPlayer(player);
+    public Player addPlayer(@RequestBody Player player) {
+        return playerService.addPlayer(player);
     }
 
     @GetMapping("/players")
@@ -32,8 +29,8 @@ public class PlayerController {
     }
 
     @PutMapping("/player/{id}")
-    public void updatePlayer (@RequestBody Player player) {
-        playerService.updatePlayer(player);
+    public Player updatePlayer (@RequestBody Player player) {
+        return playerService.updatePlayer(player);
     }
 
     @DeleteMapping("/player/{id}")
@@ -49,5 +46,11 @@ public class PlayerController {
    @GetMapping("/player/{id}/queue")
     public Set<Session> getQueueSessionsForPlayerID (@PathVariable String id) {
         return playerService.getQueueSessionsForPlayerById(id);
+    }
+
+    // Method not implemented
+    @GetMapping("/player/{id}/downtime")
+    public Integer getDowntimeForPlayerID (@PathVariable String id) {
+        return playerService.getDowntimeForPlayerById(id,0L);
     }
 }
