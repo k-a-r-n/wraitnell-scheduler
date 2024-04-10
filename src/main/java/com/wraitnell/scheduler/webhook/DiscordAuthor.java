@@ -1,5 +1,7 @@
 package com.wraitnell.scheduler.webhook;
 
+// Copied from
+
 public class DiscordAuthor {
     private String id;
     private String username;

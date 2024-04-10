@@ -64,11 +64,15 @@ public class PlayerService {
     }
 
    public Set<Session> getTokenSessionsForPlayerById(String id) {
+        // TODO: use methods in the session service for this to allow filtering out archived sessions
+
         return playerRepository.findById(id).orElseThrow(
                 () -> new SchedulerExceptionNotFound("No player with ID: " + id)).getTokenSessions();
    }
 
     public Set<Session> getQueueSessionsForPlayerById(String id) {
+        // TODO: use methods in the session service for this to allow filtering out archived sessions
+
         return playerRepository.findById(id).orElseThrow(
                 () -> new SchedulerExceptionNotFound("No player with ID: "+id)).getQueueSessions();
     }

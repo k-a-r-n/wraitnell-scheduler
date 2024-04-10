@@ -31,13 +31,14 @@ public class SessionService {
 
     public Session addSession(Session session) {
 
-        //I feel like I should be able to do this without two writes
-        // Sending false to updateSession on the second write is a decent bandaid for now, but I should revisit this
+        // I feel like I should be able to do this without two writes. Is there a method to get the next ID from the db?
+        //   Would that be reliable if this scales up? I can't think of another way that wouldn't run into problems
 
         session = sessionRepository.save(session); // We have to do this first so we have a session ID
         // post the message to the discord channel, and we should wait to get the ID back so we can save it to the table
         String messageId =  webhookService.postNewSession(session);
         session.setDiscordMessageId(messageId);
+        // Sending false here means we won't update the post, so that makes this a bit faster at least
         updateSession(session,false);
         return session;
     }
@@ -54,13 +55,15 @@ public class SessionService {
     public Session updateSession(Session session) {
 
         // Something weird was happening here. When I updated the session first, it was not saving
-        // the player arrays. I can only assume editSessionPost was fucking it up somehow, but I have no idea
+        // the player sets. I can only assume editSessionPost was fucking it up somehow, but I have no idea
         // why that would happen. Reversing the order solved this problem, but someday I'd like to figure out why
         // it happened. It would be nice to do the update and return on one line.
 
         session = sessionRepository.save(session);
 
         // Edit discord message with updated info
+        //  We could do more testing here, we really only need to update the post when certain attributes change.
+        //  Then we wouldn't need the overloaded method
 
         webhookService.editSessionPost(session);
 
@@ -83,7 +86,7 @@ public class SessionService {
     }
 
     public void deleteSession(Long id) {
-        // Delete the discord message
+        // Delete the discord message first
         webhookService.deleteMessageFromSessionQueue(getSessionById(id).getDiscordMessageId());
         sessionRepository.delete(getSessionById(id));
     }
@@ -91,7 +94,7 @@ public class SessionService {
     public void tokenPlayerForSession (String playerId, Long sessionId) {
 
         // This method adds a player to the session with a token
-        // If the player is already queued, they'll be removed from the queue and added to the tokened players
+        // If the player is already queued, they'll be removed from the queue and added to the tokened players list
 
         Session session = getSessionById(sessionId);                  // Session we're adding to
         Player newPlayer = playerService.getPlayerById(playerId);     // Player we're adding
@@ -100,11 +103,11 @@ public class SessionService {
             // Don't add more players than the max
             throw new SchedulerExceptionCantToken("session with ID: " + sessionId + " is full.");
 
-        } else  if(playerService.getTokens(playerId) > 0 ) {
+        } else  if(playerService.getTokens(playerId) < 1 ) {
             // Don't add if player doesn't have any tokens
             throw new SchedulerExceptionCantToken("player with ID: " + playerId + " has no tokens.");
 
-        } else {
+        } else { // OK to proceed
 
             if(newPlayer.getQueueSessions().contains(session)) {
                 // Player is already queued, remove them from the queue
@@ -136,6 +139,7 @@ public class SessionService {
         Player newPlayer = playerService.getPlayerById(playerID);     // Player we're adding
 
         if(newPlayer.getTokenSessions().contains(session)) {
+            // Player is already tokened for this session, remove them first
             session.unTokenPlayerForSession(newPlayer);
         }
 
@@ -149,7 +153,7 @@ public class SessionService {
 
         // Remove player from session queue
 
-        Session session = getSessionById(sessionId);                  // Session w  e're adding to
+        Session session = getSessionById(sessionId);                  // Session we're adding to
         Player byePlayer = playerService.getPlayerById(playerID);     // Player we're adding
         session.unQueuePlayerForSession(byePlayer);
         updateSession(session);
@@ -209,7 +213,7 @@ public class SessionService {
         updateSession(session, false); // We don't need to update the discord post with the end time
 
         // Optionally delete the discord post
-        if (config.getDeletePost()) {
+        if (config.isDeletePost()) {
             webhookService.deleteMessageFromSessionQueue(session.getDiscordMessageId());
         }
 
@@ -217,4 +221,11 @@ public class SessionService {
 
 
     }
+
+//    public Set<Session> getTokenSessionsByPlayerId(String id) {
+//        // Base method for retrieving all token sessions for a player
+//        // Retrieves only un-archived sessions for the player, so this method can be used to calculate tokens for the current cycle
+//
+//        return sessionRepository.findQueuedSessionsForPlayerId(id,false);
+//    }
 }

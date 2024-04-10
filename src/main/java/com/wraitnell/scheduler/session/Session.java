@@ -1,3 +1,22 @@
+/*
+ * Copyright (c)  2024 Josh Hayford (jshayford@gmail.com)
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *
+ */
+
 package com.wraitnell.scheduler.session;
 
 import com.wraitnell.scheduler.player.Player;
@@ -38,17 +57,20 @@ public class Session {
     private String discordMessageId = ""; // this is the ID of the discord message so we know what we need to edit if it changes
     @JoinColumn(name = "captain_id")
     @ManyToOne
-    private Player sessionCaptain = new Player();
+    private Player sessionCaptain;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "player_token_session", joinColumns = {@JoinColumn(referencedColumnName = "id")},
             inverseJoinColumns ={@JoinColumn(referencedColumnName = "id")})
-    private Set<Player> tokenPlayers = new HashSet<Player>();
+    private Set<Player> tokenPlayers;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "player_queue_session", joinColumns = {@JoinColumn(referencedColumnName = "id")},
             inverseJoinColumns ={@JoinColumn(referencedColumnName = "id")})
-    private Set<Player> queuePlayers = new HashSet<Player>();
+    private Set<Player> queuePlayers;
+
+    @Column(name="archived")
+    private boolean archived = false; // This marks the session as archived, which means it will not be returned by default when fetching sessions
 
     public void queuePlayerForSession (Player player) { // Adds a player object to the players set
         this.queuePlayers.add(player);
@@ -186,5 +208,13 @@ public class Session {
 
     public void setDiscordMessageId(String discordMessageId) {
         this.discordMessageId = discordMessageId;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 }

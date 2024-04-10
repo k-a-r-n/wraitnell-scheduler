@@ -44,11 +44,10 @@ public class Config {
         this.url = url;
     }
 
-    public boolean getDeletePost() {
+    public boolean isDeletePost() {
         return DeletePost;
     }
-
-    public void setDelete(boolean deletePost) {
+    public void setDeletePost(boolean deletePost) {
         DeletePost = deletePost;
     }
 }

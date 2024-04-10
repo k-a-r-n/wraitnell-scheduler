@@ -29,11 +29,12 @@ public class Player {
     private Long lastSessionId;      // stores the last session that the player was in
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "tokenPlayers")
+    @ManyToMany(mappedBy = "tokenPlayers", cascade = CascadeType.ALL)
+
     private Set<Session> tokenSessions;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "queuePlayers")
+    @ManyToMany(mappedBy = "queuePlayers", cascade = CascadeType.ALL)
     private Set<Session> queueSessions;
 
     @CreationTimestamp
@@ -96,6 +97,9 @@ public class Player {
     }
 
     public Set<Session> getTokenSessions() {
+        // This method returns all sessions the player is tokened for, including archived ones.
+        // Use sessionService.getTokenSessionsByPlayerId() instead, by default it returns only un-archived
+
         return tokenSessions;
     }
 
@@ -104,6 +108,9 @@ public class Player {
     }
 
     public Set<Session> getQueueSessions() {
+        // This method returns all sessions the player is queued for, including archived ones.
+        // Use sessionService.getQueueSessionsByPlayerId() instead, by default it returns only un-archived
+
         return queueSessions;
     }
 
