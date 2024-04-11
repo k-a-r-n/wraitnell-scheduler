@@ -14,4 +14,3 @@ The application has several parts:
 
 All app configuration is done in application.properties. Currently you have to edit the file directly to configure anything
 but adding a user interface to maintain those values is on my list.
-
